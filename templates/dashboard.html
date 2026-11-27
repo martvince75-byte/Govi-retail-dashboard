@@ -117,8 +117,8 @@ tr:last-child td { border-bottom:none; }
   </div>
   <div class="stat-card">
     <div class="label">Low Stock Items</div>
-    <div class="value" style="color:{% if stock.low_stock_count > 0 %}var(--danger){% else %}var(--success){% endif %}">
-      {{ stock.low_stock_count }}
+    <div class="value" style="color:{% if stk.low_stock_count > 0 %}var(--danger){% else %}var(--success){% endif %}">
+      {{ stk.low_stock_count }}
     </div>
     <div class="sub">Below reorder level</div>
   </div>
