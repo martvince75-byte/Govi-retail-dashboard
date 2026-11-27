@@ -107,18 +107,18 @@ tr:last-child td { border-bottom:none; }
   </div>
   <div class="stat-card">
     <div class="label">Stock Value (Cost)</div>
-    <div class="value">{{ fmt(stk.total_stock_value) }}</div>
-    <div class="sub">{{ tk.total_products }} products</div>
+    <div class="value">{{ fmt(sstk.total_stock_value) }}</div>
+    <div class="sub">{{ stk.total_products }} products</div>
   </div>
   <div class="stat-card">
     <div class="label">Stock Value (Retail)</div>
-    <div class="value">{{ fmt(stk.total_retail_value) }}</div>
+    <div class="value">{{ fmt(sstk.total_retail_value) }}</div>
     <div class="sub">Potential revenue at selling price</div>
   </div>
   <div class="stat-card">
     <div class="label">Low Stock Items</div>
-    <div class="value" style="color:{% if stk.low_stock_count > 0 %}var(--danger){% else %}var(--success){% endif %}">
-      {{ stk.low_stock_count }}
+    <div class="value" style="color:{% if sstk.low_stock_count > 0 %}var(--danger){% else %}var(--success){% endif %}">
+      {{ sstk.low_stock_count }}
     </div>
     <div class="sub">Below reorder level</div>
   </div>
@@ -208,7 +208,7 @@ tr:last-child td { border-bottom:none; }
 
 {# ── Stock Overview ────────────────────────────────────────────────── #}
 <div class="card">
-  <h3>&#128230; Stock Overview ({{ tk.total_products }} products)</h3>
+  <h3>&#128230; Stock Overview ({{ stk.total_products }} products)</h3>
   {% if stk['items'] %}
   <div style="overflow-x:auto;">
   <table>
