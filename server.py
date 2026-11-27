@@ -43,7 +43,10 @@ def _fmt(amount):
     """Format integer amount with thousand separators."""
     if amount is None:
         return '0'
-    return f'{int(amount):,}'
+    try:
+        return f'{int(float(amount)):,}'
+    except (ValueError, TypeError):
+        return '0'
 
 
 # ── API endpoint (receives sync from local POS) ─────────────────────────
