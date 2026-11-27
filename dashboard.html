@@ -209,7 +209,7 @@ tr:last-child td { border-bottom:none; }
 {# ── Stock Overview ────────────────────────────────────────────────── #}
 <div class="card">
   <h3>&#128230; Stock Overview ({{ stock.total_products }} products)</h3>
-  {% if stock.items %}
+  {% if stock['items'] %}
   <div style="overflow-x:auto;">
   <table>
     <thead>
@@ -218,7 +218,7 @@ tr:last-child td { border-bottom:none; }
           <th class="text-right">Sell</th><th class="text-center">Status</th></tr>
     </thead>
     <tbody>
-    {% for p in stock.items %}
+    {% for p in stock['items'] %}
       <tr>
         <td>{{ p.code or '—' }}</td>
         <td>{{ p.name }}</td>
