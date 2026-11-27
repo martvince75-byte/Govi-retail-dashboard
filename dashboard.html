@@ -27,7 +27,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             font-size:.82rem; color:var(--muted); display:flex;
             justify-content:space-between; flex-wrap:wrap; gap:.5rem; }
 
-/* ── Stat cards ──────────────────────────────────────────── */
 .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
          gap:.8rem; margin-bottom:1rem; }
 .stat-card { background:var(--card); border:1px solid var(--border);
@@ -37,7 +36,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 .stat-card .value { font-size:1.6rem; font-weight:700; }
 .stat-card .sub   { font-size:.78rem; color:var(--muted); margin-top:.2rem; }
 
-/* ── Tables ──────────────────────────────────────────────── */
 .card { background:var(--card); border:1px solid var(--border);
         border-radius:10px; padding:1rem 1.2rem; margin-bottom:1rem; }
 .card h3 { font-size:.95rem; font-weight:600; margin-bottom:.7rem;
@@ -58,7 +56,6 @@ tr:last-child td { border-bottom:none; }
 .no-data { text-align:center; padding:4rem 1rem; color:var(--muted); }
 .no-data h2 { font-size:1.2rem; margin-bottom:.5rem; }
 
-/* ── Responsive ──────────────────────────────────────────── */
 @media(max-width:600px) {
   .stats { grid-template-columns:1fr 1fr; }
   .stat-card .value { font-size:1.2rem; }
@@ -85,46 +82,43 @@ tr:last-child td { border-bottom:none; }
 <div class="no-data">
   <h2>&#9729; No Data Yet</h2>
   <p>Configure the Cloud Sync settings in your local POS<br>
-     (General Preferences → Cloud Sync) and run End of Day or click "Sync Now".</p>
+     (General Preferences &rarr; Cloud Sync) and run End of Day or click &ldquo;Sync Now&rdquo;.</p>
 </div>
 
 {% else %}
 
-{# ── Sync info bar ─────────────────────────────────────────────────── #}
 <div class="sync-bar">
   <span>Last sync: <strong>{{ data.synced_at[:19] | replace('T',' ') }} UTC</strong></span>
   <span>{{ data.business.currency }} &middot; {{ data.tills | length }} till(s)</span>
 </div>
 
-{# ── Top stats ─────────────────────────────────────────────────────── #}
 {% set today_sales = data.daily_sales[0] if data.daily_sales else none %}
-{% set stock = data.stock %}
+{% set stk = data.stock %}
 <div class="stats">
   <div class="stat-card">
     <div class="label">Today's Revenue</div>
-    <div class="value">{{ fmt(today_sales.revenue) if today_sales else '—' }}</div>
+    <div class="value">{{ fmt(today_sales.revenue) if today_sales else '&mdash;' }}</div>
     <div class="sub">{{ today_sales.tx_count if today_sales else 0 }} transactions</div>
   </div>
   <div class="stat-card">
     <div class="label">Stock Value (Cost)</div>
-    <div class="value">{{ fmt(stock.total_stock_value) }}</div>
-    <div class="sub">{{ stock.total_products }} products</div>
+    <div class="value">{{ fmt(stk.total_stock_value) }}</div>
+    <div class="sub">{{ stk.total_products }} products</div>
   </div>
   <div class="stat-card">
     <div class="label">Stock Value (Retail)</div>
-    <div class="value">{{ fmt(stock.total_retail_value) }}</div>
+    <div class="value">{{ fmt(stk.total_retail_value) }}</div>
     <div class="sub">Potential revenue at selling price</div>
   </div>
   <div class="stat-card">
     <div class="label">Low Stock Items</div>
-    <div class="value" style="color:{% if stock.low_stock_count > 0 %}var(--danger){% else %}var(--success){% endif %}">
-      {{ stock.low_stock_count }}
+    <div class="value" style="color:{% if stk.low_stock_count > 0 %}var(--danger){% else %}var(--success){% endif %}">
+      {{ stk.low_stock_count }}
     </div>
     <div class="sub">Below reorder level</div>
   </div>
 </div>
 
-{# ── Recent Z-Reports ─────────────────────────────────────────────── #}
 <div class="card">
   <h3>&#128202; Recent Z-Reports (End of Day)</h3>
   {% if data.zed_reports %}
@@ -156,7 +150,6 @@ tr:last-child td { border-bottom:none; }
   {% endif %}
 </div>
 
-{# ── Daily Sales Trend ─────────────────────────────────────────────── #}
 <div class="card">
   <h3>&#128200; Daily Sales (Last 30 Days)</h3>
   {% if data.daily_sales %}
@@ -183,7 +176,6 @@ tr:last-child td { border-bottom:none; }
   {% endif %}
 </div>
 
-{# ── Payment Methods ───────────────────────────────────────────────── #}
 <div class="card">
   <h3>&#128179; Payment Methods (90-Day Total)</h3>
   {% if data.payment_methods %}
@@ -206,10 +198,10 @@ tr:last-child td { border-bottom:none; }
   {% endif %}
 </div>
 
-{# ── Stock Overview ────────────────────────────────────────────────── #}
 <div class="card">
-  <h3>&#128230; Stock Overview ({{ stock.total_products }} products)</h3>
-  {% if stock['items'] %}
+  <h3>&#128230; Stock Overview ({{ stk.total_products }} products)</h3>
+  {% set stock_items = stk['items'] %}
+  {% if stock_items %}
   <div style="overflow-x:auto;">
   <table>
     <thead>
@@ -218,9 +210,9 @@ tr:last-child td { border-bottom:none; }
           <th class="text-right">Sell</th><th class="text-center">Status</th></tr>
     </thead>
     <tbody>
-    {% for p in stock['items'] %}
+    {% for p in stock_items %}
       <tr>
-        <td>{{ p.code or '—' }}</td>
+        <td>{{ p.code or '&mdash;' }}</td>
         <td>{{ p.name }}</td>
         <td>{{ p.category }}</td>
         <td class="text-right">{{ p.qty }}</td>
@@ -243,7 +235,6 @@ tr:last-child td { border-bottom:none; }
   {% endif %}
 </div>
 
-{# ── Tills ─────────────────────────────────────────────────────────── #}
 <div class="card">
   <h3>&#128187; Tills</h3>
   <table>
@@ -254,7 +245,7 @@ tr:last-child td { border-bottom:none; }
     {% for t in data.tills %}
       <tr>
         <td>{{ t.name }}</td>
-        <td>{{ t.running_date or '—' }}</td>
+        <td>{{ t.running_date or '&mdash;' }}</td>
         <td class="text-center">
           {% if t.is_active %}
             <span class="badge badge-ok">Active</span>
