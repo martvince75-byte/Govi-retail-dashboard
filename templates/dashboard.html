@@ -108,7 +108,7 @@ tr:last-child td { border-bottom:none; }
   <div class="stat-card">
     <div class="label">Stock Value (Cost)</div>
     <div class="value">{{ fmt(stock.total_stock_value) }}</div>
-    <div class="sub">{{ stock.total_products }} products</div>
+    <div class="sub">{{ tk.total_products }} products</div>
   </div>
   <div class="stat-card">
     <div class="label">Stock Value (Retail)</div>
@@ -208,7 +208,7 @@ tr:last-child td { border-bottom:none; }
 
 {# ── Stock Overview ────────────────────────────────────────────────── #}
 <div class="card">
-  <h3>&#128230; Stock Overview ({{ stock.total_products }} products)</h3>
+  <h3>&#128230; Stock Overview ({{ tk.total_products }} products)</h3>
   {% if stock.items %}
   <div style="overflow-x:auto;">
   <table>
