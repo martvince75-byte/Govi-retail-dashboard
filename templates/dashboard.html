@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% if data %}{{ data.business.name }}{% else %}KVM Retail{% endif %} — Dashboard</title>
+<style>
+:root {
+  --bg: #f0f2f5; --card: #fff; --border: #e2e8f0;
+  --text: #1a202c; --muted: #718096; --primary: #2b6cb0;
+  --success: #38a169; --danger: #e53e3e; --warning: #d69e2e;
+  --blue-50: #ebf8ff; --green-50: #f0fff4; --red-50: #fff5f5;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+       background: var(--bg); color: var(--text); line-height:1.5; }
+
+.header { background: linear-gradient(135deg, #1a365d, #2b6cb0);
+           color:#fff; padding:1.2rem 1.5rem; }
+.header h1 { font-size:1.3rem; font-weight:700; }
+.header small { opacity:.8; font-size:.82rem; }
+
+.container { max-width:1100px; margin:0 auto; padding:1rem; }
+
+.sync-bar { background: var(--card); border:1px solid var(--border);
+            border-radius:8px; padding:.7rem 1rem; margin-bottom:1rem;
+            font-size:.82rem; color:var(--muted); display:flex;
+            justify-content:space-between; flex-wrap:wrap; gap:.5rem; }
+
+/* ── Stat cards ──────────────────────────────────────────── */
+.stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+         gap:.8rem; margin-bottom:1rem; }
+.stat-card { background:var(--card); border:1px solid var(--border);
+             border-radius:10px; padding:1rem 1.2rem; }
+.stat-card .label { font-size:.78rem; color:var(--muted); text-transform:uppercase;
+                    letter-spacing:.5px; margin-bottom:.3rem; }
+.stat-card .value { font-size:1.6rem; font-weight:700; }
+.stat-card .sub   { font-size:.78rem; color:var(--muted); margin-top:.2rem; }
+
+/* ── Tables ──────────────────────────────────────────────── */
+.card { background:var(--card); border:1px solid var(--border);
+        border-radius:10px; padding:1rem 1.2rem; margin-bottom:1rem; }
+.card h3 { font-size:.95rem; font-weight:600; margin-bottom:.7rem;
+           color:var(--primary); }
+table { width:100%; border-collapse:collapse; font-size:.85rem; }
+th { text-align:left; padding:.5rem .6rem; border-bottom:2px solid var(--border);
+     font-size:.75rem; text-transform:uppercase; color:var(--muted); letter-spacing:.5px; }
+td { padding:.45rem .6rem; border-bottom:1px solid var(--border); }
+tr:last-child td { border-bottom:none; }
+.text-right { text-align:right; }
+.text-center { text-align:center; }
+
+.badge { display:inline-block; padding:2px 8px; border-radius:10px;
+         font-size:.72rem; font-weight:600; }
+.badge-low  { background:var(--red-50); color:var(--danger); }
+.badge-ok   { background:var(--green-50); color:var(--success); }
+
+.no-data { text-align:center; padding:4rem 1rem; color:var(--muted); }
+.no-data h2 { font-size:1.2rem; margin-bottom:.5rem; }
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media(max-width:600px) {
+  .stats { grid-template-columns:1fr 1fr; }
+  .stat-card .value { font-size:1.2rem; }
+  .header h1 { font-size:1.1rem; }
+  table { font-size:.78rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  {% if data %}
+  <h1>{{ data.business.name }}</h1>
+  <small>{{ data.business.address }}</small>
+  {% else %}
+  <h1>KVM Retail Dashboard</h1>
+  <small>Waiting for first sync...</small>
+  {% endif %}
+</div>
+
+<div class="container">
+
+{% if not data %}
+<div class="no-data">
+  <h2>&#9729; No Data Yet</h2>
+  <p>Configure the Cloud Sync settings in your local POS<br>
+     (General Preferences → Cloud Sync) and run End of Day or click "Sync Now".</p>
+</div>
+
+{% else %}
+
+{# ── Sync info bar ─────────────────────────────────────────────────── #}
+<div class="sync-bar">
+  <span>Last sync: <strong>{{ data.synced_at[:19] | replace('T',' ') }} UTC</strong></span>
+  <span>{{ data.business.currency }} &middot; {{ data.tills | length }} till(s)</span>
+</div>
+
+{# ── Top stats ─────────────────────────────────────────────────────── #}
+{% set today_sales = data.daily_sales[0] if data.daily_sales else none %}
+{% set stock = data.stock %}
+<div class="stats">
+  <div class="stat-card">
+    <div class="label">Today's Revenue</div>
+    <div class="value">{{ fmt(today_sales.revenue) if today_sales else '—' }}</div>
+    <div class="sub">{{ today_sales.tx_count if today_sales else 0 }} transactions</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Stock Value (Cost)</div>
+    <div class="value">{{ fmt(stock.total_stock_value) }}</div>
+    <div class="sub">{{ stock.total_products }} products</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Stock Value (Retail)</div>
+    <div class="value">{{ fmt(stock.total_retail_value) }}</div>
+    <div class="sub">Potential revenue at selling price</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Low Stock Items</div>
+    <div class="value" style="color:{% if stock.low_stock_count > 0 %}var(--danger){% else %}var(--success){% endif %}">
+      {{ stock.low_stock_count }}
+    </div>
+    <div class="sub">Below reorder level</div>
+  </div>
+</div>
+
+{# ── Recent Z-Reports ─────────────────────────────────────────────── #}
+<div class="card">
+  <h3>&#128202; Recent Z-Reports (End of Day)</h3>
+  {% if data.zed_reports %}
+  <div style="overflow-x:auto;">
+  <table>
+    <thead>
+      <tr>
+        <th>Date</th><th>Till</th><th class="text-right">Revenue</th>
+        <th class="text-right">Sales</th><th class="text-right">Voids</th>
+        <th>Closed By</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for z in data.zed_reports[:30] %}
+      <tr>
+        <td>{{ z.report_date }}</td>
+        <td>{{ z.till_name }}</td>
+        <td class="text-right"><strong>{{ fmt(z.grand_total) }}</strong></td>
+        <td class="text-right">{{ z.total_sales }}</td>
+        <td class="text-right">{{ z.total_voids }}{% if z.void_amount %} ({{ fmt(z.void_amount) }}){% endif %}</td>
+        <td>{{ z.closed_by }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <p style="color:var(--muted);font-size:.85rem;">No Z-Reports yet.</p>
+  {% endif %}
+</div>
+
+{# ── Daily Sales Trend ─────────────────────────────────────────────── #}
+<div class="card">
+  <h3>&#128200; Daily Sales (Last 30 Days)</h3>
+  {% if data.daily_sales %}
+  <div style="overflow-x:auto;">
+  <table>
+    <thead>
+      <tr><th>Date</th><th class="text-right">Revenue</th>
+          <th class="text-right">Transactions</th><th class="text-right">Discounts</th></tr>
+    </thead>
+    <tbody>
+    {% for d in data.daily_sales[:30] %}
+      <tr>
+        <td>{{ d.date }}</td>
+        <td class="text-right"><strong>{{ fmt(d.revenue) }}</strong></td>
+        <td class="text-right">{{ d.tx_count }}</td>
+        <td class="text-right">{{ fmt(d.discounts) }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <p style="color:var(--muted);font-size:.85rem;">No sales data yet.</p>
+  {% endif %}
+</div>
+
+{# ── Payment Methods ───────────────────────────────────────────────── #}
+<div class="card">
+  <h3>&#128179; Payment Methods (90-Day Total)</h3>
+  {% if data.payment_methods %}
+  <table>
+    <thead>
+      <tr><th>Method</th><th class="text-right">Transactions</th><th class="text-right">Total</th></tr>
+    </thead>
+    <tbody>
+    {% for m in data.payment_methods %}
+      <tr>
+        <td>{{ m.method | replace('_',' ') | title }}</td>
+        <td class="text-right">{{ m.tx_count }}</td>
+        <td class="text-right"><strong>{{ fmt(m.total) }}</strong></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color:var(--muted);font-size:.85rem;">No payment data yet.</p>
+  {% endif %}
+</div>
+
+{# ── Stock Overview ────────────────────────────────────────────────── #}
+<div class="card">
+  <h3>&#128230; Stock Overview ({{ stock.total_products }} products)</h3>
+  {% if stock.items %}
+  <div style="overflow-x:auto;">
+  <table>
+    <thead>
+      <tr><th>Code</th><th>Product</th><th>Category</th>
+          <th class="text-right">Qty</th><th class="text-right">Cost</th>
+          <th class="text-right">Sell</th><th class="text-center">Status</th></tr>
+    </thead>
+    <tbody>
+    {% for p in stock.items %}
+      <tr>
+        <td>{{ p.code or '—' }}</td>
+        <td>{{ p.name }}</td>
+        <td>{{ p.category }}</td>
+        <td class="text-right">{{ p.qty }}</td>
+        <td class="text-right">{{ fmt(p.cost_price) }}</td>
+        <td class="text-right">{{ fmt(p.selling_price) }}</td>
+        <td class="text-center">
+          {% if p.low_stock %}
+            <span class="badge badge-low">LOW</span>
+          {% else %}
+            <span class="badge badge-ok">OK</span>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <p style="color:var(--muted);font-size:.85rem;">No stock data.</p>
+  {% endif %}
+</div>
+
+{# ── Tills ─────────────────────────────────────────────────────────── #}
+<div class="card">
+  <h3>&#128187; Tills</h3>
+  <table>
+    <thead>
+      <tr><th>Till</th><th>Running Date</th><th class="text-center">Status</th></tr>
+    </thead>
+    <tbody>
+    {% for t in data.tills %}
+      <tr>
+        <td>{{ t.name }}</td>
+        <td>{{ t.running_date or '—' }}</td>
+        <td class="text-center">
+          {% if t.is_active %}
+            <span class="badge badge-ok">Active</span>
+          {% else %}
+            <span class="badge badge-low">Inactive</span>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div style="text-align:center;padding:1rem;font-size:.75rem;color:var(--muted);">
+  KVM Retail POS &middot; Cloud Dashboard &middot; Read-Only
+</div>
+
+{% endif %}
+
+</div>
+</body>
+</html>
